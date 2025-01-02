@@ -1,23 +1,17 @@
-import { Controller, Get, Param, Patch, Body } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Body, Post } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 
-@Controller('users')
+@Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get()
-  findAll() {
-    return this.userService.findAll();
+  @Patch('heartbeat/:id')
+  heartbeat(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.heartbeat(+id, updateUserDto);
   }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  @Post('enter-referral-code')
+  setPetAndReferralModal(@Body('referral_code') referral_code: string) {
+    return this.userService.setPetAndReferralModal(referral_code);
   }
 }

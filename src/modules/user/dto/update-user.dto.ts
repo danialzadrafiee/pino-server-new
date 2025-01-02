@@ -1,6 +1,14 @@
-import { User } from '@prisma/client';
+import { User, UserBusiness } from '@prisma/client';
+
+export class UpdateUserBusinessDto implements Partial<UserBusiness> {
+  id?: number;
+  user_id?: number;
+  business_id?: number;
+  level?: number;
+}
 
 export class UpdateUserDto implements Partial<User> {
+  userBusiness?: UpdateUserBusinessDto[];
   referrer_id?: number;
   telegram_username?: string;
   telegram_firstname?: string;

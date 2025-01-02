@@ -10,6 +10,7 @@ datasource db {
 model User {
   id                           Int      @id @default(autoincrement())
   referrer_id                  Int?
+  referral_code                String   @unique
   // Telegram fields
   telegram_id                  Int      @unique
   telegram_username            String?
@@ -22,6 +23,8 @@ model User {
   // Referral system fields
   direct_referral_count        Int      @default(0)
   downline_referral_count      Int      @default(0)
+  pets                         Json?
+  referral_modal_watched       Boolean? @default(false) @map("closed_golden_modal")
   // Idle game fields
   apple_balance                Float    @default(0)
   apple_per_second             Float    @default(0)
@@ -46,23 +49,12 @@ model Referral {
   referred    User     @relation("referred", fields: [referred_id], references: [id])
 }
 
-model Business {
-  id           Int            @id @default(autoincrement())
-  business_id  Int            @unique
-  name         String
-  level        Int            @default(0)
-  userBusiness UserBusiness[]
-}
-
 model UserBusiness {
-  id          Int      @id @default(autoincrement())
+  id          Int  @id @default(autoincrement())
   user_id     Int
   business_id Int
-  level       Int      @default(1)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @default(now()) @map("updated_at")
-  user        User     @relation(fields: [user_id], references: [id])
-  business    Business @relation(fields: [business_id], references: [id])
+  level       Int  @default(1)
+  user        User @relation(fields: [user_id], references: [id])
 
   @@unique([user_id, business_id])
 }

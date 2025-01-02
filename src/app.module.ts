@@ -4,7 +4,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { UserModule } from './modules/user/user.module';
-import { BusinessModule } from './modules/business/business.module';
 import { UserBusinessModule } from './modules/user-business/user-business.module';
 
 @Module({
@@ -12,7 +11,6 @@ import { UserBusinessModule } from './modules/user-business/user-business.module
     AuthModule,
     PrismaModule,
     UserModule,
-    BusinessModule,
     UserBusinessModule,
   ],
   controllers: [AppController],
