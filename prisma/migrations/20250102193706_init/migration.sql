@@ -3,6 +3,7 @@ CREATE TABLE `User` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `referrer_id` INTEGER NULL,
     `referral_code` VARCHAR(191) NOT NULL,
+    `referral_modal_watched` BOOLEAN NULL DEFAULT false,
     `telegram_id` INTEGER NOT NULL,
     `telegram_username` VARCHAR(191) NULL,
     `telegram_firstname` VARCHAR(191) NULL,
@@ -13,7 +14,6 @@ CREATE TABLE `User` (
     `direct_referral_count` INTEGER NOT NULL DEFAULT 0,
     `downline_referral_count` INTEGER NOT NULL DEFAULT 0,
     `pets` JSON NULL,
-    `closed_golden_modal` BOOLEAN NULL DEFAULT false,
     `apple_balance` DOUBLE NOT NULL DEFAULT 0,
     `apple_per_second` DOUBLE NOT NULL DEFAULT 0,
     `last_heartbeat` DATETIME(3) NOT NULL,
@@ -50,9 +50,6 @@ CREATE TABLE `UserBusiness` (
 
 -- AddForeignKey
 ALTER TABLE `Referral` ADD CONSTRAINT `Referral_referrer_id_fkey` FOREIGN KEY (`referrer_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `Referral` ADD CONSTRAINT `Referral_referred_id_fkey` FOREIGN KEY (`referred_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `UserBusiness` ADD CONSTRAINT `UserBusiness_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

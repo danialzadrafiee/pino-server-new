@@ -11,7 +11,7 @@ export class UserController {
     return this.userService.heartbeat(+id, updateUserDto);
   }
   @Post('enter-referral-code')
-  setPetAndReferralModal(@Body('referral_code') referral_code: string) {
+  setPetAndReferralModal(@Body('referral_code') referral_code?: string) {
     return this.userService.setPetAndReferralModal(referral_code);
   }
 }

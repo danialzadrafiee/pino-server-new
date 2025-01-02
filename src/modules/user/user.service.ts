@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { getBusinessById } from '../../constants/business.constants';
@@ -6,6 +6,24 @@ import { getBusinessById } from '../../constants/business.constants';
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
+
+  private async getUplineUsers(userId: number): Promise<number[]> {
+    const uplineUsers: number[] = [];
+    let currentUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { referrer_id: true },
+    });
+
+    while (currentUser?.referrer_id) {
+      uplineUsers.push(currentUser.referrer_id);
+      currentUser = await this.prisma.user.findUnique({
+        where: { id: currentUser.referrer_id },
+        select: { referrer_id: true },
+      });
+    }
+
+    return uplineUsers;
+  }
 
   async heartbeat(id: number, updateUserDto: UpdateUserDto) {
     const { userBusiness, ...userData } = updateUserDto;
@@ -16,8 +34,7 @@ export class UserService {
         where: { id },
         data: userData,
         include: {
-          referrals: true,
-          referred: true,
+          invited_by_this_user: true,
           userBusiness: true,
         },
       });
@@ -50,8 +67,7 @@ export class UserService {
         .findUnique({
           where: { id },
           include: {
-            referrals: true,
-            referred: true,
+            invited_by_this_user: true,
             userBusiness: true,
           },
         })
@@ -69,38 +85,65 @@ export class UserService {
     });
   }
 
-  async setPetAndReferralModal(referral_code: string) {
+  async setPetAndReferralModal(referral_code?: string) {
     const randomPetId = Math.floor(Math.random() * 2) + 1;
-
-    // Find referrer by referral code
-    const referrer = await this.prisma.user.findUnique({
-      where: { referral_code },
+    const currentUser = await this.prisma.user.findUnique({
+      where: { id: 1 },
+      select: { pets: true },
     });
 
-    if (referrer) {
-      return this.prisma.user.updateMany({
-        where: {
-          pets: {
-            equals: [],
-          },
-        },
-        data: {
-          referral_modal_watched: true,
-          pets: [randomPetId],
-          referrer_id: referrer.id,
-        },
-      });
+    const updateData: any = {
+      referral_modal_watched: true,
+    };
+
+    const currentPets = currentUser?.pets as number[] | null | undefined;
+    if (!currentPets || currentPets.length === 0) {
+      updateData.pets = [randomPetId];
     }
 
-    return this.prisma.user.updateMany({
+    if (referral_code) {
+      const referrer = await this.prisma.user.findUnique({
+        where: { referral_code },
+      });
+      if (!referrer) {
+        throw new BadRequestException('Invalid referral code');
+      }
+
+      const uplineUsers = await this.getUplineUsers(referrer.id);
+      await this.prisma.$transaction(async (tx) => {
+        await tx.user.update({
+          where: { id: referrer.id },
+          data: {
+            direct_referral_count: { increment: 1 },
+            downline_referral_count: { increment: 1 },
+          },
+        });
+
+        await tx.referral.create({
+          data: {
+            referrer_id: referrer.id,
+            referred_id: 1,
+            telegram_id: 1,
+          },
+        });
+
+        if (uplineUsers.length > 0) {
+          await tx.user.updateMany({
+            where: { id: { in: uplineUsers } },
+            data: {
+              downline_referral_count: { increment: 1 },
+            },
+          });
+        }
+      });
+      updateData.referrer_id = referrer.id;
+    }
+
+    return this.prisma.user.update({
       where: {
-        pets: {
-          equals: [],
-        },
+        id: 1,
       },
-      data: {
-        referral_modal_watched: true,
-      },
+      data: updateData,
     });
   }
 }
