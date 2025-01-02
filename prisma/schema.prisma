@@ -9,9 +9,9 @@ datasource db {
 
 model User {
   id                           Int      @id @default(autoincrement())
-  inviter_id                   Int? // Optional, for users who weren't invited
+  referrer_id                  Int?
   // Telegram fields
-  telegram_id                  String   @unique
+  telegram_id                  Int      @unique
   telegram_username            String?
   telegram_firstname           String?
   telegram_lastname            String?
@@ -26,29 +26,43 @@ model User {
   apple_balance                Float    @default(0)
   apple_per_second             Float    @default(0)
   // Timestamps
+  last_heartbeat               DateTime
   created_at                   DateTime @default(now())
   updated_at                   DateTime @updatedAt
 
-  // Relations
-  inviter    User?      @relation("UserInvites", fields: [inviter_id], references: [id])
-  invitees   User[]     @relation("UserInvites")
-  businesses Business[]
+  referrals    Referral[]     @relation("referrer")
+  referred     Referral[]     @relation("referred")
+  userBusiness UserBusiness[]
+}
 
-  @@map("users")
+model Referral {
+  id          Int      @id @default(autoincrement())
+  referrer_id Int
+  referred_id Int
+  telegram_id Int
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @map("updated_at")
+  referrer    User     @relation("referrer", fields: [referrer_id], references: [id])
+  referred    User     @relation("referred", fields: [referred_id], references: [id])
 }
 
 model Business {
-  id          Int      @id @default(autoincrement())
-  business_id Int
-  name        String   
-  level       Int      @default(1)
-  user_id     Int
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  id           Int            @id @default(autoincrement())
+  business_id  Int            @unique
+  name         String
+  level        Int            @default(0)
+  userBusiness UserBusiness[]
+}
 
-  // Relation to User
-  user User @relation(fields: [user_id], references: [id])
+model UserBusiness {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  business_id Int
+  level       Int      @default(1)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @map("updated_at")
+  user        User     @relation(fields: [user_id], references: [id])
+  business    Business @relation(fields: [business_id], references: [id])
 
   @@unique([user_id, business_id])
-  @@map("businesses")
 }

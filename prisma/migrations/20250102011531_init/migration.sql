@@ -1,18 +1,21 @@
 -- CreateTable
 CREATE TABLE `User` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `referrer_id` INTEGER NOT NULL,
+    `referrer_id` INTEGER NULL,
     `telegram_id` INTEGER NOT NULL,
     `telegram_username` VARCHAR(191) NULL,
     `telegram_firstname` VARCHAR(191) NULL,
     `telegram_lastname` VARCHAR(191) NULL,
-    `apple_balance` DOUBLE NOT NULL DEFAULT 0,
     `cricket_balance` DOUBLE NOT NULL DEFAULT 0,
-    `previous_matchs_apple_earning` DOUBLE NOT NULL DEFAULT 0,
-    `direct_referrals_count` INTEGER NOT NULL DEFAULT 0,
-    `downline_referrals_count` INTEGER NOT NULL DEFAULT 0,
+    `this_match_apple_earning` DOUBLE NOT NULL DEFAULT 0,
+    `previous_match_apple_earning` DOUBLE NOT NULL DEFAULT 0,
+    `direct_referral_count` INTEGER NOT NULL DEFAULT 0,
+    `downline_referral_count` INTEGER NOT NULL DEFAULT 0,
+    `apple_balance` DOUBLE NOT NULL DEFAULT 0,
+    `apple_per_second` DOUBLE NOT NULL DEFAULT 0,
+    `last_heartbeat` DATETIME(3) NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `User_telegram_id_key`(`telegram_id`),
     PRIMARY KEY (`id`)
@@ -33,17 +36,11 @@ CREATE TABLE `Referral` (
 -- CreateTable
 CREATE TABLE `Business` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `business_id` INTEGER NOT NULL,
     `name` VARCHAR(191) NOT NULL,
-    `initial_cost` DOUBLE NOT NULL,
-    `coefficient` DOUBLE NOT NULL,
-    `initial_aps` DOUBLE NOT NULL,
-    `initial_tap_reward` DOUBLE NOT NULL,
     `level` INTEGER NOT NULL DEFAULT 0,
-    `tiers` JSON NOT NULL,
-    `requirements` JSON NOT NULL,
-    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
+    UNIQUE INDEX `Business_business_id_key`(`business_id`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 

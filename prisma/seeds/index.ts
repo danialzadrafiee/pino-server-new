@@ -6,7 +6,6 @@ import { seedUserBusiness } from './userBusiness.seed';
 const prisma = new PrismaClient();
 
 async function main() {
-    // Use a transaction to ensure data consistency
     await prisma.$transaction(async (tx) => {
         await seedUser(tx);
         await seedBusiness(tx);
