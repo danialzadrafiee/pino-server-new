@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:WTFIS0124@localhost:3306/pino-nest"
+}
+
+model User {
+  id                           Int      @id @default(autoincrement())
+  inviter_id                   Int? // Optional, for users who weren't invited
+  // Telegram fields
+  telegram_id                  String   @unique
+  telegram_username            String?
+  telegram_firstname           String?
+  telegram_lastname            String?
+  // Cricket game fields
+  cricket_balance              Float    @default(0)
+  this_match_apple_earning     Float    @default(0)
+  previous_match_apple_earning Float    @default(0)
+  // Referral system fields
+  direct_referral_count        Int      @default(0)
+  downline_referral_count      Int      @default(0)
+  // Idle game fields
+  apple_balance                Float    @default(0)
+  apple_per_second             Float    @default(0)
+  // Timestamps
+  created_at                   DateTime @default(now())
+  updated_at                   DateTime @updatedAt
+
+  // Relations
+  inviter    User?      @relation("UserInvites", fields: [inviter_id], references: [id])
+  invitees   User[]     @relation("UserInvites")
+  businesses Business[]
+
+  @@map("users")
+}
+
+model Business {
+  id          Int      @id @default(autoincrement())
+  business_id Int
+  name        String   
+  level       Int      @default(1)
+  user_id     Int
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relation to User
+  user User @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, business_id])
+  @@map("businesses")
+}
