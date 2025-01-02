@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = "mysql://root:WTFIS0124@localhost:3306/pino-nest"
+  url      = env("DB_CONNECTION")
 }
 
 model User {
