@@ -1,7 +1,7 @@
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { TelegramAuthMiddleware } from './telegram-auth.middleware';
 
 @Module({
   imports: [],
@@ -9,4 +9,10 @@ import { Module } from '@nestjs/common';
   providers: [AuthService],
   exports: [AuthService]
 })
-export class AuthModule {}
+export class AuthModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(TelegramAuthMiddleware)
+      .forRoutes('auth/get-auth-user');
+  }
+}

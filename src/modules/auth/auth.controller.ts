@@ -1,11 +1,9 @@
 import {
   Body,
   Controller,
-  Get,
   Post,
-  Query,
+  Headers,
   BadRequestException,
-  ParseIntPipe,
   Logger,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -21,20 +19,17 @@ interface RegisterUserDto {
 @Controller('auth')
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
-  
   constructor(private readonly authService: AuthService) {}
-
   @Post('signup')
   registerUser(@Body() userData: RegisterUserDto) {
     return this.authService.registerNewUser(userData);
   }
-
   @Post('get-auth-user')
-  getAuthUser(@Body('telegram_id') telegramId: number) {
-    this.logger.log(`Getting auth user for telegram_id: ${telegramId.toString()}`);
+  getAuthUser(@Headers('X-Telegram-ID') telegramId: string) {
+    this.logger.log(`Getting auth user for telegram_id: ${telegramId}`);
     if (!telegramId) {
-      throw new BadRequestException('telegram_id is required');
+      throw new BadRequestException('X-Telegram-ID header is required');
     }
-    return this.authService.getAuthUser(telegramId);
+    return this.authService.getAuthUser(parseInt(telegramId));
   }
 }
