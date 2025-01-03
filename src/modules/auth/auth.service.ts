@@ -4,6 +4,14 @@ https://docs.nestjs.com/providers#services
 
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { User, UserBusiness } from '@prisma/client';
+
+type UserWithBusiness = Omit<User, 'referrer_id'> & {
+  userBusiness: UserBusiness[];
+  referrer_id: string | null;
+};
+
+type UserResponse = UserWithBusiness;
 
 @Injectable()
 export class AuthService {
@@ -24,12 +32,43 @@ export class AuthService {
     }
     return 0;
   }
-
-  private generateReferralCode(): string {
-    return Math.random().toString(36).substring(2, 8).toUpperCase();
+  private async generateReferralCode(maxAttempts: number = 10): Promise<string> {
+    const allowedChars = [
+      'A',
+      'B',
+      'C',
+      'X',
+      'Y',
+      'Z',
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+    ];
+    
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      let code = '';
+      for (let i = 0; i < 9; i++) {
+        const randomIndex = Math.floor(Math.random() * allowedChars.length);
+        code += allowedChars[randomIndex];
+      }
+      
+      // Check if code already exists
+      const existingUser = await this.prisma.user.findUnique({
+        where: { referral_code: code },
+      });
+      
+      if (!existingUser) {
+        return code; // Found a unique code
+      }
+      
+      this.logger.debug(`Referral code collision detected: ${code}, retrying...`);
+    }
+    
+    throw new Error(`Failed to generate unique referral code after ${maxAttempts} attempts`);
   }
-
-  async findUserByReferralCode(referralCode: string) {
+  async findUserByReferralCode(referralCode: string): Promise<User | null> {
     return await this.prisma.user.findUnique({
       where: { referral_code: referralCode },
     });
@@ -41,7 +80,7 @@ export class AuthService {
     telegram_firstname?: string;
     telegram_lastname?: string;
     referrer_code?: string;
-  }) {
+  }): Promise<UserResponse> {
     // Ensure telegram_id is string
     const telegram_id = telegramData.telegram_id.toString();
     return await this.prisma.$transaction(async (prisma) => {
@@ -52,7 +91,6 @@ export class AuthService {
           userBusiness: true,
         },
       });
-
       if (existingUser) {
         return {
           ...existingUser,
@@ -62,8 +100,6 @@ export class AuthService {
           userBusiness: existingUser.userBusiness,
         };
       }
-
-      // Find referrer if referral code provided
       let referrerId: number | null = null;
       if (telegramData.referrer_code) {
         const referrer = await prisma.user.findUnique({
@@ -71,7 +107,6 @@ export class AuthService {
         });
         if (referrer) {
           referrerId = referrer.id;
-          // Update referrer's counts
           await prisma.user.update({
             where: { id: referrer.id },
             data: {
@@ -80,15 +115,13 @@ export class AuthService {
           });
         }
       }
-
-      // Create new user
       const newUser = await prisma.user.create({
         data: {
           telegram_id,
           telegram_username: telegramData.telegram_username,
           telegram_firstname: telegramData.telegram_firstname,
           telegram_lastname: telegramData.telegram_lastname,
-          referral_code: this.generateReferralCode(),
+          referral_code: await this.generateReferralCode(),
           referrer_id: referrerId,
           last_heartbeat: new Date(),
           apple_balance: 5,
@@ -98,8 +131,6 @@ export class AuthService {
           userBusiness: true,
         },
       });
-
-      // Create referral record if there's a referrer
       if (referrerId) {
         await prisma.referral.create({
           data: {
@@ -109,7 +140,6 @@ export class AuthService {
           },
         });
       }
-
       return {
         ...newUser,
         referrer_id: newUser.referrer_id
@@ -120,27 +150,23 @@ export class AuthService {
     });
   }
 
-  async getAuthUser(telegram_id: string) {
+  async getAuthUser(telegram_id: string): Promise<UserResponse | null> {
     this.logger.log(`Processing getAuthUser for telegram_id: ${telegram_id}`);
     return await this.prisma.$transaction(async (prisma) => {
-      // Get current user state
       const user = await prisma.user.findUnique({
         where: { telegram_id },
         include: {
           userBusiness: true,
         },
       });
-
       if (!user) {
         this.logger.log(`No user found for telegram_id: ${telegram_id}`);
         return null;
       }
-
       const offlineEarnings = this.calculateOfflineEarnings(
         user.last_heartbeat,
         user.apple_per_second,
       );
-
       const updatedUser = await prisma.user.update({
         where: { telegram_id },
         data: {
@@ -151,7 +177,6 @@ export class AuthService {
           userBusiness: true,
         },
       });
-
       this.logger.log(
         `Successfully updated user for telegram_id: ${telegram_id}`,
       );
