@@ -14,16 +14,21 @@ export class TelegramAuthMiddleware implements NestMiddleware {
     }
 
     try {
-      const user = await this.authService.getAuthUser(telegramId);
+      let user = await this.authService.getAuthUser(telegramId);
       if (!user) {
-        throw new UnauthorizedException('User not found');
+        // If user doesn't exist, create a new one
+        user = await this.authService.registerNewUser({
+          telegram_id: telegramId
+        });
       }
       
-      // Attach the user to the request object
       (req as any).user = user;
       
       next();
     } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
       throw new UnauthorizedException('Invalid telegram user');
     }
   }

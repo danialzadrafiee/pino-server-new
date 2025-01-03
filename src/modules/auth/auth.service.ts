@@ -48,6 +48,9 @@ export class AuthService {
       // Check if user already exists
       const existingUser = await prisma.user.findUnique({
         where: { telegram_id },
+        include: {
+          userBusiness: true,
+        },
       });
 
       if (existingUser) {
@@ -56,6 +59,7 @@ export class AuthService {
           referrer_id: existingUser.referrer_id
             ? existingUser.referrer_id.toString()
             : null,
+          userBusiness: existingUser.userBusiness,
         };
       }
 
@@ -72,7 +76,6 @@ export class AuthService {
             where: { id: referrer.id },
             data: {
               direct_referral_count: { increment: 1 },
-              downline_referral_count: { increment: 1 },
             },
           });
         }
@@ -90,6 +93,9 @@ export class AuthService {
           last_heartbeat: new Date(),
           apple_balance: 5,
           pets: [],
+        },
+        include: {
+          userBusiness: true,
         },
       });
 
@@ -109,6 +115,7 @@ export class AuthService {
         referrer_id: newUser.referrer_id
           ? newUser.referrer_id.toString()
           : null,
+        userBusiness: newUser.userBusiness,
       };
     });
   }
@@ -153,6 +160,7 @@ export class AuthService {
         referrer_id: updatedUser.referrer_id
           ? updatedUser.referrer_id.toString()
           : null,
+        userBusiness: updatedUser.userBusiness,
       };
     });
   }
