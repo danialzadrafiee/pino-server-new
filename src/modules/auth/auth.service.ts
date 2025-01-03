@@ -46,7 +46,14 @@ export class AuthService {
       });
 
       if (existingUser) {
-        return existingUser;
+        // Transform BigInt values to strings before returning
+        const serializedUser = {
+          ...existingUser,
+          telegram_id: existingUser.telegram_id.toString(),
+          id: existingUser.id.toString(),
+          referrer_id: existingUser.referrer_id ? existingUser.referrer_id.toString() : null,
+        };
+        return serializedUser;
       }
 
       // Find referrer if referral code provided
@@ -93,7 +100,15 @@ export class AuthService {
         });
       }
 
-      return newUser;
+      // Transform BigInt values to strings before returning
+      const serializedUser = {
+        ...newUser,
+        telegram_id: newUser.telegram_id.toString(),
+        id: newUser.id.toString(),
+        referrer_id: newUser.referrer_id ? newUser.referrer_id.toString() : null,
+      };
+      
+      return serializedUser;
     });
   }
 
@@ -131,7 +146,15 @@ export class AuthService {
       });
 
       this.logger.log(`Successfully updated user for telegram_id: ${telegram_id.toString()}`);
-      return updatedUser;
+      // Transform BigInt values to strings before returning
+      const serializedUser = {
+        ...updatedUser,
+        telegram_id: updatedUser.telegram_id.toString(),
+        id: updatedUser.id.toString(),
+        referrer_id: updatedUser.referrer_id ? updatedUser.referrer_id.toString() : null,
+      };
+      
+      return serializedUser;
     });
   }
 }
