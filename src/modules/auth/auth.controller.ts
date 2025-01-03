@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, Query, BadRequestException, ParseIntPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  BadRequestException,
+  ParseIntPipe,
+  Logger,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 interface RegisterUserDto {
@@ -11,6 +20,8 @@ interface RegisterUserDto {
 
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+  
   constructor(private readonly authService: AuthService) {}
 
   @Post('signup')
@@ -19,7 +30,8 @@ export class AuthController {
   }
 
   @Post('get-auth-user')
-  getAuthUser(@Body('telegram_id', new ParseIntPipe({ errorHttpStatusCode: 400 })) telegramId: number) {
+  getAuthUser(@Body('telegram_id') telegramId: number) {
+    this.logger.log(`Getting auth user for telegram_id: ${telegramId}`);
     if (!telegramId) {
       throw new BadRequestException('telegram_id is required');
     }

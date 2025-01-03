@@ -2,11 +2,13 @@
 https://docs.nestjs.com/providers#services
 */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+  
   constructor(private readonly prisma: PrismaService) {}
 
   private calculateOfflineEarnings(lastHeartbeat: Date, applePerSecond: number): number {
@@ -97,6 +99,7 @@ export class AuthService {
 
 
   async getAuthUser(telegram_id: number) {
+    this.logger.log(`Processing getAuthUser for telegram_id: ${telegram_id}`);
     return await this.prisma.$transaction(async (prisma) => {
       // Get current user state
       const user = await prisma.user.findUnique({
@@ -107,6 +110,7 @@ export class AuthService {
       });
 
       if (!user) {
+        this.logger.log(`No user found for telegram_id: ${telegram_id}`);
         return null;
       }
 
@@ -126,6 +130,7 @@ export class AuthService {
         },
       });
 
+      this.logger.log(`Successfully updated user for telegram_id: ${telegram_id}`);
       return updatedUser;
     });
   }
