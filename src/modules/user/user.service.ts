@@ -21,20 +21,16 @@ export class UserService {
         select: { referrer_id: true },
       });
     }
-
     return uplineUsers;
   }
-
   async heartbeat(userId: number, updateUserDto: UpdateUserDto) {
     const { userBusiness, ...userData } = updateUserDto;
 
     return this.prisma.$transaction(async (prisma) => {
-      // Update user data
       const updatedUser = await prisma.user.update({
         where: { id: userId },
         data: {
           ...userData,
-          // Ensure numeric values for critical fields
           apple_balance: typeof userData.apple_balance === 'string' 
             ? parseFloat(userData.apple_balance) 
             : userData.apple_balance,
@@ -71,7 +67,6 @@ export class UserService {
         }
       }
 
-      // Return the final updated user with all relations
       return prisma.user
         .findUnique({
           where: { id: userId },
@@ -124,7 +119,6 @@ export class UserService {
           where: { id: referrer.id },
           data: {
             direct_referral_count: { increment: 1 },
-            downline_referral_count: { increment: 1 },
           },
         });
 
