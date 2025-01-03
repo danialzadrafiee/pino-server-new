@@ -1,3 +1,4 @@
+import { TelegramModule } from './modules/telegram/telegram.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
@@ -8,6 +9,7 @@ import { UserBusinessModule } from './modules/user-business/user-business.module
 
 @Module({
   imports: [
+    TelegramModule,
     AuthModule,
     PrismaModule,
     UserModule,
