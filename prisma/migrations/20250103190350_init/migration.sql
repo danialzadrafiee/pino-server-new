@@ -21,6 +21,7 @@ CREATE TABLE `User` (
     `updated_at` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `User_referral_code_key`(`referral_code`),
+    UNIQUE INDEX `User_telegram_id_key`(`telegram_id`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 

@@ -13,7 +13,7 @@ model User {
   referral_code                String   @unique
   referral_modal_watched       Boolean? @default(false)
   // Telegram fields
-  telegram_id                  String      
+  telegram_id                  String   @unique   
   telegram_username            String?
   telegram_firstname           String?
   telegram_lastname            String?

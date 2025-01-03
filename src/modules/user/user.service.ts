@@ -123,7 +123,7 @@ export class UserService {
           data: {
             referrer_id: referrer.id,
             referred_id: 1,
-            telegram_id: 1,
+            telegram_id: '1',
           },
         });
 
