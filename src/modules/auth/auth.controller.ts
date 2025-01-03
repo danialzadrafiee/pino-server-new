@@ -30,6 +30,6 @@ export class AuthController {
     if (!telegramId) {
       throw new BadRequestException('X-Telegram-ID header is required');
     }
-    return this.authService.getAuthUser(parseInt(telegramId));
+    return this.authService.getAuthUser(BigInt(telegramId));
   }
 }

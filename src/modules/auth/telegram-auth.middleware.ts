@@ -14,7 +14,8 @@ export class TelegramAuthMiddleware implements NestMiddleware {
     }
 
     try {
-      const user = await this.authService.getAuthUser(parseInt(telegramId));
+      // Convert string to BigInt since telegram_id is BigInt in schema
+      const user = await this.authService.getAuthUser(BigInt(telegramId));
       if (!user) {
         throw new UnauthorizedException('User not found');
       }

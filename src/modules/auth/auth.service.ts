@@ -33,16 +33,18 @@ export class AuthService {
   }
 
   async registerNewUser(telegramData: { 
-    telegram_id: number;
+    telegram_id: number | bigint;
     telegram_username?: string;
     telegram_firstname?: string;
     telegram_lastname?: string;
     referrer_code?: string;
   }) {
+    // Ensure telegram_id is BigInt
+    const telegram_id = BigInt(telegramData.telegram_id);
     return await this.prisma.$transaction(async (prisma) => {
       // Check if user already exists
       const existingUser = await prisma.user.findUnique({
-        where: { telegram_id: telegramData.telegram_id }
+        where: { telegram_id }
       });
 
       if (existingUser) {
@@ -78,7 +80,7 @@ export class AuthService {
       // Create new user
       const newUser = await prisma.user.create({
         data: {
-          telegram_id: telegramData.telegram_id,
+          telegram_id,
           telegram_username: telegramData.telegram_username,
           telegram_firstname: telegramData.telegram_firstname,
           telegram_lastname: telegramData.telegram_lastname,
@@ -95,7 +97,7 @@ export class AuthService {
           data: {
             referrer_id: referrerId,
             referred_id: newUser.id,
-            telegram_id: telegramData.telegram_id
+            telegram_id
           }
         });
       }
@@ -113,7 +115,7 @@ export class AuthService {
   }
 
 
-  async getAuthUser(telegram_id: number) {
+  async getAuthUser(telegram_id: bigint) {
     this.logger.log(`Processing getAuthUser for telegram_id: ${telegram_id.toString()}`);
     return await this.prisma.$transaction(async (prisma) => {
       // Get current user state
