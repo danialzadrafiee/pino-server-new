@@ -4,7 +4,7 @@ CREATE TABLE `User` (
     `referrer_id` INTEGER NULL,
     `referral_code` VARCHAR(191) NOT NULL,
     `referral_modal_watched` BOOLEAN NULL DEFAULT false,
-    `telegram_id` INTEGER NOT NULL,
+    `telegram_id` BIGINT NOT NULL,
     `telegram_username` VARCHAR(191) NULL,
     `telegram_firstname` VARCHAR(191) NULL,
     `telegram_lastname` VARCHAR(191) NULL,
@@ -30,7 +30,7 @@ CREATE TABLE `Referral` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `referrer_id` INTEGER NOT NULL,
     `referred_id` INTEGER NOT NULL,
-    `telegram_id` INTEGER NOT NULL,
+    `telegram_id` BIGINT NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 

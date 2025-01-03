@@ -13,7 +13,7 @@ model User {
   referral_code                String   @unique
   referral_modal_watched       Boolean? @default(false)
   // Telegram fields
-  telegram_id                  Int      @unique
+  telegram_id                  BigInt      @unique
   telegram_username            String?
   telegram_firstname           String?
   telegram_lastname            String?
@@ -41,7 +41,7 @@ model Referral {
   id          Int      @id @default(autoincrement())
   referrer_id Int
   referred_id Int
-  telegram_id Int
+  telegram_id BigInt
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @default(now()) @map("updated_at")
   referrer    User     @relation("referrer", fields: [referrer_id], references: [id])
