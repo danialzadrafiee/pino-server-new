@@ -99,7 +99,7 @@ export class AuthService {
 
 
   async getAuthUser(telegram_id: number) {
-    this.logger.log(`Processing getAuthUser for telegram_id: ${telegram_id}`);
+    this.logger.log(`Processing getAuthUser for telegram_id: ${telegram_id.toString()}`);
     return await this.prisma.$transaction(async (prisma) => {
       // Get current user state
       const user = await prisma.user.findUnique({
@@ -110,7 +110,7 @@ export class AuthService {
       });
 
       if (!user) {
-        this.logger.log(`No user found for telegram_id: ${telegram_id}`);
+        this.logger.log(`No user found for telegram_id: ${telegram_id.toString()}`);
         return null;
       }
 
@@ -130,7 +130,7 @@ export class AuthService {
         },
       });
 
-      this.logger.log(`Successfully updated user for telegram_id: ${telegram_id}`);
+      this.logger.log(`Successfully updated user for telegram_id: ${telegram_id.toString()}`);
       return updatedUser;
     });
   }

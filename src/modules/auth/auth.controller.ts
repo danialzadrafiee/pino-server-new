@@ -31,7 +31,7 @@ export class AuthController {
 
   @Post('get-auth-user')
   getAuthUser(@Body('telegram_id') telegramId: number) {
-    this.logger.log(`Getting auth user for telegram_id: ${telegramId}`);
+    this.logger.log(`Getting auth user for telegram_id: ${telegramId.toString()}`);
     if (!telegramId) {
       throw new BadRequestException('telegram_id is required');
     }
