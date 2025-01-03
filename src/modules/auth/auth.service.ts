@@ -20,8 +20,6 @@ export class AuthService {
     return 0;
   }
 
-
-
   private generateReferralCode(): string {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
   }
@@ -33,14 +31,14 @@ export class AuthService {
   }
 
   async registerNewUser(telegramData: { 
-    telegram_id: number | bigint;
+    telegram_id: string | number;
     telegram_username?: string;
     telegram_firstname?: string;
     telegram_lastname?: string;
     referrer_code?: string;
   }) {
-    // Ensure telegram_id is BigInt
-    const telegram_id = BigInt(telegramData.telegram_id);
+    // Ensure telegram_id is string
+    const telegram_id = telegramData.telegram_id.toString();
     return await this.prisma.$transaction(async (prisma) => {
       // Check if user already exists
       const existingUser = await prisma.user.findUnique({
@@ -48,14 +46,12 @@ export class AuthService {
       });
 
       if (existingUser) {
-        // Transform BigInt values to strings before returning
-        const serializedUser = {
+        // Only serialize numeric IDs
+        return {
           ...existingUser,
-          telegram_id: existingUser.telegram_id.toString(),
           id: existingUser.id.toString(),
           referrer_id: existingUser.referrer_id ? existingUser.referrer_id.toString() : null,
         };
-        return serializedUser;
       }
 
       // Find referrer if referral code provided
@@ -102,21 +98,17 @@ export class AuthService {
         });
       }
 
-      // Transform BigInt values to strings before returning
-      const serializedUser = {
+      // Only serialize numeric IDs
+      return {
         ...newUser,
-        telegram_id: newUser.telegram_id.toString(),
         id: newUser.id.toString(),
         referrer_id: newUser.referrer_id ? newUser.referrer_id.toString() : null,
       };
-      
-      return serializedUser;
     });
   }
 
-
-  async getAuthUser(telegram_id: bigint) {
-    this.logger.log(`Processing getAuthUser for telegram_id: ${telegram_id.toString()}`);
+  async getAuthUser(telegram_id: string) {
+    this.logger.log(`Processing getAuthUser for telegram_id: ${telegram_id}`);
     return await this.prisma.$transaction(async (prisma) => {
       // Get current user state
       const user = await prisma.user.findUnique({
@@ -127,7 +119,7 @@ export class AuthService {
       });
 
       if (!user) {
-        this.logger.log(`No user found for telegram_id: ${telegram_id.toString()}`);
+        this.logger.log(`No user found for telegram_id: ${telegram_id}`);
         return null;
       }
 
@@ -147,16 +139,13 @@ export class AuthService {
         },
       });
 
-      this.logger.log(`Successfully updated user for telegram_id: ${telegram_id.toString()}`);
-      // Transform BigInt values to strings before returning
-      const serializedUser = {
+      this.logger.log(`Successfully updated user for telegram_id: ${telegram_id}`);
+      // Only serialize numeric IDs
+      return {
         ...updatedUser,
-        telegram_id: updatedUser.telegram_id.toString(),
         id: updatedUser.id.toString(),
         referrer_id: updatedUser.referrer_id ? updatedUser.referrer_id.toString() : null,
       };
-      
-      return serializedUser;
     });
   }
 }

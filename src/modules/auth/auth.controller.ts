@@ -9,7 +9,7 @@ import {
 import { AuthService } from './auth.service';
 
 interface RegisterUserDto {
-  telegram_id: number;
+  telegram_id: string | number;
   telegram_username?: string;
   telegram_firstname?: string;
   telegram_lastname?: string;
@@ -30,6 +30,6 @@ export class AuthController {
     if (!telegramId) {
       throw new BadRequestException('X-Telegram-ID header is required');
     }
-    return this.authService.getAuthUser(BigInt(telegramId));
+    return this.authService.getAuthUser(telegramId);
   }
 }
