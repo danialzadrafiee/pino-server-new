@@ -8,12 +8,17 @@ import { PrismaService } from '../prisma/prisma.service';
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
-  
+
   constructor(private readonly prisma: PrismaService) {}
 
-  private calculateOfflineEarnings(lastHeartbeat: Date, applePerSecond: number): number {
+  private calculateOfflineEarnings(
+    lastHeartbeat: Date,
+    applePerSecond: number,
+  ): number {
     const now = new Date();
-    const timeDiffInSeconds = Math.floor((now.getTime() - lastHeartbeat.getTime()) / 1000);
+    const timeDiffInSeconds = Math.floor(
+      (now.getTime() - lastHeartbeat.getTime()) / 1000,
+    );
     if (timeDiffInSeconds > 4) {
       return applePerSecond * timeDiffInSeconds;
     }
@@ -26,11 +31,11 @@ export class AuthService {
 
   async findUserByReferralCode(referralCode: string) {
     return await this.prisma.user.findUnique({
-      where: { referral_code: referralCode }
+      where: { referral_code: referralCode },
     });
   }
 
-  async registerNewUser(telegramData: { 
+  async registerNewUser(telegramData: {
     telegram_id: string | number;
     telegram_username?: string;
     telegram_firstname?: string;
@@ -42,13 +47,15 @@ export class AuthService {
     return await this.prisma.$transaction(async (prisma) => {
       // Check if user already exists
       const existingUser = await prisma.user.findUnique({
-        where: { telegram_id }
+        where: { telegram_id },
       });
 
       if (existingUser) {
         return {
           ...existingUser,
-          referrer_id: existingUser.referrer_id ? existingUser.referrer_id.toString() : null,
+          referrer_id: existingUser.referrer_id
+            ? existingUser.referrer_id.toString()
+            : null,
         };
       }
 
@@ -56,7 +63,7 @@ export class AuthService {
       let referrerId: number | null = null;
       if (telegramData.referrer_code) {
         const referrer = await prisma.user.findUnique({
-          where: { referral_code: telegramData.referrer_code }
+          where: { referral_code: telegramData.referrer_code },
         });
         if (referrer) {
           referrerId = referrer.id;
@@ -65,8 +72,8 @@ export class AuthService {
             where: { id: referrer.id },
             data: {
               direct_referral_count: { increment: 1 },
-              downline_referral_count: { increment: 1 }
-            }
+              downline_referral_count: { increment: 1 },
+            },
           });
         }
       }
@@ -81,8 +88,9 @@ export class AuthService {
           referral_code: this.generateReferralCode(),
           referrer_id: referrerId,
           last_heartbeat: new Date(),
-          pets: []
-        }
+          apple_balance: 5,
+          pets: [],
+        },
       });
 
       // Create referral record if there's a referrer
@@ -91,14 +99,16 @@ export class AuthService {
           data: {
             referrer_id: referrerId,
             referred_id: newUser.id,
-            telegram_id
-          }
+            telegram_id,
+          },
         });
       }
 
       return {
         ...newUser,
-        referrer_id: newUser.referrer_id ? newUser.referrer_id.toString() : null,
+        referrer_id: newUser.referrer_id
+          ? newUser.referrer_id.toString()
+          : null,
       };
     });
   }
@@ -121,7 +131,7 @@ export class AuthService {
 
       const offlineEarnings = this.calculateOfflineEarnings(
         user.last_heartbeat,
-        user.apple_per_second
+        user.apple_per_second,
       );
 
       const updatedUser = await prisma.user.update({
@@ -135,10 +145,14 @@ export class AuthService {
         },
       });
 
-      this.logger.log(`Successfully updated user for telegram_id: ${telegram_id}`);
+      this.logger.log(
+        `Successfully updated user for telegram_id: ${telegram_id}`,
+      );
       return {
         ...updatedUser,
-        referrer_id: updatedUser.referrer_id ? updatedUser.referrer_id.toString() : null,
+        referrer_id: updatedUser.referrer_id
+          ? updatedUser.referrer_id.toString()
+          : null,
       };
     });
   }
