@@ -85,7 +85,7 @@ export class AuthService {
           referral_code: this.generateReferralCode(),
           referrer_id: referrerId,
           last_heartbeat: new Date(),
-          pets: {}
+          pets: []
         }
       });
 
