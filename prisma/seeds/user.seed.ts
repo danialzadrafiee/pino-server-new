@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 export async function seedUser(prisma: Prisma.TransactionClient) {
   await prisma.user.create({
     data: {
-      telegram_id: '123',
+      telegram_id: '123456789',
       referrer_id: null,
       referral_code: '11111111',
       telegram_username: 'demo_user',

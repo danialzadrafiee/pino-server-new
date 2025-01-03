@@ -46,10 +46,8 @@ export class AuthService {
       });
 
       if (existingUser) {
-        // Only serialize numeric IDs
         return {
           ...existingUser,
-          id: existingUser.id.toString(),
           referrer_id: existingUser.referrer_id ? existingUser.referrer_id.toString() : null,
         };
       }
@@ -98,10 +96,8 @@ export class AuthService {
         });
       }
 
-      // Only serialize numeric IDs
       return {
         ...newUser,
-        id: newUser.id.toString(),
         referrer_id: newUser.referrer_id ? newUser.referrer_id.toString() : null,
       };
     });
@@ -140,10 +136,8 @@ export class AuthService {
       });
 
       this.logger.log(`Successfully updated user for telegram_id: ${telegram_id}`);
-      // Only serialize numeric IDs
       return {
         ...updatedUser,
-        id: updatedUser.id.toString(),
         referrer_id: updatedUser.referrer_id ? updatedUser.referrer_id.toString() : null,
       };
     });

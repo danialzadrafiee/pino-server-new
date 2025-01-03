@@ -25,14 +25,23 @@ export class UserService {
     return uplineUsers;
   }
 
-  async heartbeat(id: number, updateUserDto: UpdateUserDto) {
+  async heartbeat(userId: number, updateUserDto: UpdateUserDto) {
     const { userBusiness, ...userData } = updateUserDto;
 
     return this.prisma.$transaction(async (prisma) => {
       // Update user data
       const updatedUser = await prisma.user.update({
-        where: { id },
-        data: userData,
+        where: { id: userId },
+        data: {
+          ...userData,
+          // Ensure numeric values for critical fields
+          apple_balance: typeof userData.apple_balance === 'string' 
+            ? parseFloat(userData.apple_balance) 
+            : userData.apple_balance,
+          apple_per_second: typeof userData.apple_per_second === 'string'
+            ? parseFloat(userData.apple_per_second)
+            : userData.apple_per_second,
+        },
         include: {
           invited_by_this_user: true,
           userBusiness: true,
@@ -46,12 +55,12 @@ export class UserService {
           await prisma.userBusiness.upsert({
             where: {
               user_id_business_id: {
-                user_id: id,
+                user_id: userId,
                 business_id: ub.business_id,
               },
             },
             create: {
-              user_id: id,
+              user_id: userId,
               business_id: ub.business_id,
               level: ub.level,
             },
@@ -65,7 +74,7 @@ export class UserService {
       // Return the final updated user with all relations
       return prisma.user
         .findUnique({
-          where: { id },
+          where: { id: userId },
           include: {
             invited_by_this_user: true,
             userBusiness: true,
@@ -85,10 +94,10 @@ export class UserService {
     });
   }
 
-  async setPetAndReferralModal(referral_code?: string) {
+  async setPetAndReferralModal(userId: number, referral_code?: string) {
     const randomPetId = Math.floor(Math.random() * 2) + 1;
     const currentUser = await this.prisma.user.findUnique({
-      where: { id: 1 },
+      where: { id: userId },
       select: { pets: true },
     });
 
@@ -122,8 +131,8 @@ export class UserService {
         await tx.referral.create({
           data: {
             referrer_id: referrer.id,
-            referred_id: 1,
-            telegram_id: '1',
+            referred_id: userId,
+            telegram_id: userId.toString(),
           },
         });
 
@@ -141,7 +150,7 @@ export class UserService {
 
     return this.prisma.user.update({
       where: {
-        id: 1,
+        id: userId,
       },
       data: updateData,
     });
