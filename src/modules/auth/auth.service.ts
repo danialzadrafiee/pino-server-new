@@ -4,6 +4,7 @@ https://docs.nestjs.com/providers#services
 
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { TelegramService } from '../telegram/telegram.service';
 import { User, UserBusiness } from '@prisma/client';
 
 type UserWithBusiness = Omit<User, 'referrer_id'> & {
@@ -17,7 +18,10 @@ type UserResponse = UserWithBusiness;
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly telegramService: TelegramService,
+  ) {}
 
   private calculateOfflineEarnings(
     lastHeartbeat: Date,
@@ -60,7 +64,7 @@ export class AuthService {
       });
       
       if (!existingUser) {
-        return code; // Found a unique code
+        return code; 
       }
       
       this.logger.debug(`Referral code collision detected: ${code}, retrying...`);
@@ -81,10 +85,9 @@ export class AuthService {
     telegram_lastname?: string;
     referrer_code?: string;
   }): Promise<UserResponse> {
-    // Ensure telegram_id is string
     const telegram_id = telegramData.telegram_id.toString();
     return await this.prisma.$transaction(async (prisma) => {
-      // Check if user already exists
+
       const existingUser = await prisma.user.findUnique({
         where: { telegram_id },
         include: {
@@ -105,7 +108,9 @@ export class AuthService {
         const referrer = await prisma.user.findUnique({
           where: { referral_code: telegramData.referrer_code },
         });
-        if (referrer) {
+        
+        // Check if the referrer exists and it's not the same user
+        if (referrer && referrer.telegram_id !== telegram_id) {
           referrerId = referrer.id;
           await prisma.user.update({
             where: { id: referrer.id },
@@ -139,6 +144,22 @@ export class AuthService {
             telegram_id,
           },
         });
+
+        // Send notification to referrer
+        const referrer = await prisma.user.findUnique({
+          where: { id: referrerId },
+        });
+        
+        if (referrer) {
+          await this.telegramService.sendReferralNotification(
+            Number(referrer.telegram_id),
+            {
+              telegram_username: telegramData.telegram_username,
+              telegram_firstname: telegramData.telegram_firstname,
+              telegram_lastname: telegramData.telegram_lastname,
+            }
+          );
+        }
       }
       return {
         ...newUser,

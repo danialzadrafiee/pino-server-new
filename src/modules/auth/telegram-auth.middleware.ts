@@ -16,7 +16,7 @@ export class TelegramAuthMiddleware implements NestMiddleware {
     try {
       let user = await this.authService.getAuthUser(telegramId);
       if (!user) {
-        // If user doesn't exist, create a new one
+     
         user = await this.authService.registerNewUser({
           telegram_id: telegramId
         });

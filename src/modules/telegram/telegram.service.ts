@@ -35,9 +35,7 @@ export class TelegramService implements OnModuleInit {
     this.bot.onText(/\/start(?:\s+(\w+))?/, async (msg, match) => {
       Logger.log(msg.from)
       try {
-        // Extract referral code if provided
         const referrerCode = match ? match[1] : undefined;
-        // Register or get existing user
         const user = await this.authService.registerNewUser({
           telegram_id: msg.from.id,
           telegram_username: msg.from.username,

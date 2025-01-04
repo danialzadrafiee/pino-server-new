@@ -31,12 +31,14 @@ export class UserService {
         where: { id: userId },
         data: {
           ...userData,
-          apple_balance: typeof userData.apple_balance === 'string' 
-            ? parseFloat(userData.apple_balance) 
-            : userData.apple_balance,
-          apple_per_second: typeof userData.apple_per_second === 'string'
-            ? parseFloat(userData.apple_per_second)
-            : userData.apple_per_second,
+          apple_balance:
+            typeof userData.apple_balance === 'string'
+              ? parseFloat(userData.apple_balance)
+              : userData.apple_balance,
+          apple_per_second:
+            typeof userData.apple_per_second === 'string'
+              ? parseFloat(userData.apple_per_second)
+              : userData.apple_per_second,
         },
         include: {
           invited_by_this_user: true,
@@ -44,9 +46,7 @@ export class UserService {
         },
       });
 
-      // Update userBusiness if provided
       if (userBusiness && userBusiness.length > 0) {
-        // Update each userBusiness record
         for (const ub of userBusiness) {
           await prisma.userBusiness.upsert({
             where: {
@@ -111,6 +111,9 @@ export class UserService {
       });
       if (!referrer) {
         throw new BadRequestException('Invalid referral code');
+      }
+      if (referrer.id === userId) {
+        throw new BadRequestException('You cannot use your own referral code');
       }
 
       const uplineUsers = await this.getUplineUsers(referrer.id);
