@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleInit, forwardRef } from '@nestjs/common';
 import * as TelegramBot from 'node-telegram-bot-api';
 import { AuthService } from '../auth/auth.service';
 import { REFERRAL_CONFIG } from '../../constants/referral.constants';
@@ -8,7 +8,10 @@ export class TelegramService implements OnModuleInit {
   private bot: TelegramBot;
   private readonly logger = new Logger(TelegramService.name);
 
-  constructor(private readonly authService: AuthService) {
+  constructor(
+    @Inject(forwardRef(() => AuthService))
+    private readonly authService: AuthService
+  ) {
     this.bot = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true });
   }
 

@@ -2,7 +2,7 @@
 https://docs.nestjs.com/providers#services
 */
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TelegramService } from '../telegram/telegram.service';
 import { User, UserBusiness } from '@prisma/client';
@@ -20,6 +20,7 @@ export class AuthService {
 
   constructor(
     private readonly prisma: PrismaService,
+    @Inject(forwardRef(() => TelegramService))
     private readonly telegramService: TelegramService,
   ) {}
 

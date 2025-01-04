@@ -3,9 +3,13 @@ import { AuthController } from './auth.controller';
 import { MiddlewareConsumer, Module, NestModule, forwardRef } from '@nestjs/common';
 import { TelegramAuthMiddleware } from './telegram-auth.middleware';
 import { TelegramModule } from '../telegram/telegram.module';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  imports: [forwardRef(() => TelegramModule)],
+  imports: [
+    forwardRef(() => TelegramModule),
+    PrismaModule
+  ],
   controllers: [AuthController],
   providers: [AuthService],
   exports: [AuthService]
