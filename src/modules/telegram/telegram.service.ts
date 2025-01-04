@@ -47,10 +47,10 @@ export class TelegramService implements OnModuleInit {
           referrer_code: referrerCode
         });
 
-        // If user was registered with a referral code, find referrer and send notification
-        if (referrerCode) {
+        // Only send notification if the referral was actually applied (user.referrer_id exists)
+        if (user.referrer_id && referrerCode) {
           const referrer = await this.authService.findUserByReferralCode(referrerCode);
-          if (referrer) {
+          if (referrer && referrer.telegram_id !== msg.from.id.toString()) {
             await this.sendReferralNotification(Number(referrer.telegram_id), {
               telegram_username: msg.from.username,
               telegram_firstname: msg.from.first_name,

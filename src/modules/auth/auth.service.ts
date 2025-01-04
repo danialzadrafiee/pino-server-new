@@ -111,14 +111,18 @@ export class AuthService {
         });
         
         // Check if the referrer exists and it's not the same user
-        if (referrer && referrer.telegram_id !== telegram_id) {
-          referrerId = referrer.id;
-          await prisma.user.update({
-            where: { id: referrer.id },
-            data: {
-              direct_referral_count: { increment: 1 },
-            },
-          });
+        if (referrer) {
+          if (referrer.telegram_id === telegram_id) {
+            this.logger.warn(`User ${telegram_id} attempted to use their own referral code`);
+          } else {
+            referrerId = referrer.id;
+            await prisma.user.update({
+              where: { id: referrer.id },
+              data: {
+                direct_referral_count: { increment: 1 },
+              },
+            });
+          }
         }
       }
       const newUser = await prisma.user.create({
