@@ -212,7 +212,7 @@ export class AuthService {
           ? updatedUser.referrer_id.toString()
           : null,
         userBusiness: updatedUser.userBusiness,
-      };
+       };
     });
   }
 }

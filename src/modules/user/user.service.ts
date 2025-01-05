@@ -23,47 +23,85 @@ export class UserService {
     }
     return uplineUsers;
   }
+
   async heartbeat(userId: number, updateUserDto: UpdateUserDto) {
     const { userBusiness, ...userData } = updateUserDto;
 
     return this.prisma.$transaction(async (prisma) => {
+      // Get current user data
+      const currentUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          apple_balance: true,
+          apple_per_second: true,
+          userBusiness: true
+        }
+      });
+
+      if (!currentUser) {
+        throw new BadRequestException('User not found');
+      }
+
+      // Prepare update data
+      const updateData: any = {};
+
+      // Only update apple_balance if new value is greater
+      if (userData.apple_balance !== undefined) {
+        const newAppleBalance = typeof userData.apple_balance === 'string'
+          ? parseFloat(userData.apple_balance)
+          : userData.apple_balance;
+        
+        if (newAppleBalance > (currentUser.apple_balance || 0)) {
+          updateData.apple_balance = newAppleBalance;
+        }
+      }
+
+      // Only update apple_per_second if new value is greater
+      if (userData.apple_per_second !== undefined) {
+        const newApplePerSecond = typeof userData.apple_per_second === 'string'
+          ? parseFloat(userData.apple_per_second)
+          : userData.apple_per_second;
+        
+        if (newApplePerSecond > (currentUser.apple_per_second || 0)) {
+          updateData.apple_per_second = newApplePerSecond;
+        }
+      }
+
+      // Update user with filtered data
       const updatedUser = await prisma.user.update({
         where: { id: userId },
-        data: {
-          ...userData,
-          apple_balance:
-            typeof userData.apple_balance === 'string'
-              ? parseFloat(userData.apple_balance)
-              : userData.apple_balance,
-          apple_per_second:
-            typeof userData.apple_per_second === 'string'
-              ? parseFloat(userData.apple_per_second)
-              : userData.apple_per_second,
-        },
+        data: updateData,
         include: {
           invited_by_this_user: true,
           userBusiness: true,
         },
       });
 
+      // Update userBusiness levels only if new level is greater
       if (userBusiness && userBusiness.length > 0) {
         for (const ub of userBusiness) {
-          await prisma.userBusiness.upsert({
-            where: {
-              user_id_business_id: {
+          const currentBusiness = currentUser.userBusiness.find(
+            b => b.business_id === ub.business_id
+          );
+
+          if (!currentBusiness || ub.level > currentBusiness.level) {
+            await prisma.userBusiness.upsert({
+              where: {
+                user_id_business_id: {
+                  user_id: userId,
+                  business_id: ub.business_id,
+                },
+              },
+              create: {
                 user_id: userId,
                 business_id: ub.business_id,
+                level: ub.level,
               },
-            },
-            create: {
-              user_id: userId,
-              business_id: ub.business_id,
-              level: ub.level,
-            },
-            update: {
-              level: ub.level,
-            },
-          });
+              update: {
+                level: ub.level,
+              },
+            });
+          }
         }
       }
 
