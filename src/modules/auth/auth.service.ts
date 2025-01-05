@@ -37,7 +37,9 @@ export class AuthService {
     }
     return 0;
   }
-  private async generateReferralCode(maxAttempts: number = 10): Promise<string> {
+  private async generateReferralCode(
+    maxAttempts: number = 10,
+  ): Promise<string> {
     const allowedChars = [
       'A',
       'B',
@@ -51,27 +53,27 @@ export class AuthService {
       '4',
       '5',
     ];
-    
+
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       let code = '';
       for (let i = 0; i < 9; i++) {
         const randomIndex = Math.floor(Math.random() * allowedChars.length);
         code += allowedChars[randomIndex];
       }
-      
+
       // Check if code already exists
       const existingUser = await this.prisma.user.findUnique({
         where: { referral_code: code },
       });
-      
+
       if (!existingUser) {
-        return code; 
+        return code;
       }
-      
-      this.logger.debug(`Referral code collision detected: ${code}, retrying...`);
     }
-    
-    throw new Error(`Failed to generate unique referral code after ${maxAttempts} attempts`);
+
+    throw new Error(
+      `Failed to generate unique referral code after ${maxAttempts} attempts`,
+    );
   }
   async findUserByReferralCode(referralCode: string): Promise<User | null> {
     return await this.prisma.user.findUnique({
@@ -88,7 +90,6 @@ export class AuthService {
   }): Promise<UserResponse> {
     const telegram_id = telegramData.telegram_id.toString();
     return await this.prisma.$transaction(async (prisma) => {
-
       const existingUser = await prisma.user.findUnique({
         where: { telegram_id },
         include: {
@@ -109,11 +110,10 @@ export class AuthService {
         const referrer = await prisma.user.findUnique({
           where: { referral_code: telegramData.referrer_code },
         });
-        
+
         // Check if the referrer exists and it's not the same user
         if (referrer) {
           if (referrer.telegram_id === telegram_id) {
-            this.logger.warn(`User ${telegram_id} attempted to use their own referral code`);
           } else {
             referrerId = referrer.id;
             await prisma.user.update({
@@ -154,7 +154,7 @@ export class AuthService {
         const referrer = await prisma.user.findUnique({
           where: { id: referrerId },
         });
-        
+
         if (referrer) {
           await this.telegramService.sendReferralNotification(
             Number(referrer.telegram_id),
@@ -162,7 +162,7 @@ export class AuthService {
               telegram_username: telegramData.telegram_username,
               telegram_firstname: telegramData.telegram_firstname,
               telegram_lastname: telegramData.telegram_lastname,
-            }
+            },
           );
         }
       }
@@ -177,7 +177,6 @@ export class AuthService {
   }
 
   async getAuthUser(telegram_id: string): Promise<UserResponse | null> {
-    this.logger.log(`Processing getAuthUser for telegram_id: ${telegram_id}`);
     return await this.prisma.$transaction(async (prisma) => {
       const user = await prisma.user.findUnique({
         where: { telegram_id },
@@ -186,7 +185,6 @@ export class AuthService {
         },
       });
       if (!user) {
-        this.logger.log(`No user found for telegram_id: ${telegram_id}`);
         return null;
       }
       const offlineEarnings = this.calculateOfflineEarnings(
@@ -203,16 +201,14 @@ export class AuthService {
           userBusiness: true,
         },
       });
-      this.logger.log(
-        `Successfully updated user for telegram_id: ${telegram_id}`,
-      );
+
       return {
         ...updatedUser,
         referrer_id: updatedUser.referrer_id
           ? updatedUser.referrer_id.toString()
           : null,
         userBusiness: updatedUser.userBusiness,
-       };
+      };
     });
   }
 }

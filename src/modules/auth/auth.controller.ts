@@ -26,7 +26,6 @@ export class AuthController {
   }
   @Post('get-auth-user')
   getAuthUser(@Headers('X-Telegram-ID') telegramId: string) {
-    this.logger.log(`Getting auth user for telegram_id: ${telegramId}`);
     if (!telegramId) {
       throw new BadRequestException('X-Telegram-ID header is required');
     }
