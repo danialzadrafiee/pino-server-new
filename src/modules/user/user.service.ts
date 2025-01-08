@@ -128,22 +128,16 @@ export class UserService {
   }
 
   async setPetAndReferralModal(userId: number, referral_code?: string) {
-    const randomPetId = Math.floor(Math.random() * 2) + 1;
-    const currentUser = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { pets: true },
-    });
-
     const updateData: any = {
       referral_modal_watched: true,
     };
 
-    const currentPets = currentUser?.pets as number[] | null | undefined;
-    if (!currentPets || currentPets.length === 0) {
-      updateData.pets = [randomPetId];
-    }
-
     if (referral_code) {
+      const currentUser = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { pets: true },
+      });
+
       const referrer = await this.prisma.user.findUnique({
         where: { referral_code },
       });
@@ -152,6 +146,13 @@ export class UserService {
       }
       if (referrer.id === userId) {
         throw new BadRequestException('You cannot use your own referral code');
+      }
+
+      // Only give pet if valid referral code is provided
+      const currentPets = currentUser?.pets as number[] | null | undefined;
+      if (!currentPets || currentPets.length === 0) {
+        const randomPetId = Math.floor(Math.random() * 2) + 1;
+        updateData.pets = [randomPetId];
       }
 
       const uplineUsers = await this.getUplineUsers(referrer.id);
