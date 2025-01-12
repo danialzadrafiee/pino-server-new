@@ -69,7 +69,7 @@ export class TelegramService implements OnModuleInit {
         welcomeMessage += '\n\nClick the button below to start playing:';
 
         const botUsername = (await this.bot.getMe()).username;
-        const shareUrl = `https://t.me/${botUsername}?start=${user.referral_code}`;
+        const shareUrl = `https://t.me/${botUsername}?startapp=${user.referral_code}`;
 
         const inlineKeyboard = {
           reply_markup: {
