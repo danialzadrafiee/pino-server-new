@@ -1,1 +1,0 @@
-ssh root@bnic.io "source /root/.nvm/nvm.sh && cd /var/www/backend.pinocchio.club && pm2 log 6"
