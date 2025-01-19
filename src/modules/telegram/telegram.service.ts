@@ -66,7 +66,7 @@ export class TelegramService implements OnModuleInit {
           welcomeMessage += `\n\n🎫 Your referral code: ${user.referral_code}`;
           welcomeMessage += '\nShare this code with friends to earn bonuses!';
         }
-        welcomeMessage += '\n\nClick the button below to start playing:';
+        welcomeMessage += '\n\nClick the button below to start playing: ';
 
         const botUsername = (await this.bot.getMe()).username;
         const shareUrl = `https://t.me/${botUsername}?startapp=${user.referral_code}`;
