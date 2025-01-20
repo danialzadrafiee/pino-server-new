@@ -77,7 +77,7 @@ export class TelegramService implements OnModuleInit {
               [
                 {
                   text: '🎮 Start Game',
-                  web_app: { url: 'https://pin-vite.developerpie.com' },
+                  web_app: { url: process.env.WEB_APP_URL },
                 },
               ],
               [
